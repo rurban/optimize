@@ -8,7 +8,7 @@ use B::Utils qw(walkallops_simple);
 use B qw(OPf_KIDS OPf_MOD OPf_PARENS OPf_WANT_SCALAR OPf_STACKED);
 use Attribute::Handlers;
 use Hook::Scope qw(POST);
-our $VERSION = 0.02;
+our $VERSION = 0.03;
 
 our %pads;
 our $state;
@@ -18,13 +18,13 @@ our $stash;
 our %register;
 use optimizer "extend-c" => sub { 
     my $op = shift;
-    POST { $old_op = $op };
+    POST { $old_op = $op; return () };
     if($op->name eq 'nextstate') {
 	$state = $op;
 	$stash = $state->stash->NAME;
 #	print $state->file . ":" . $state->line . "-" . $state->stash->NAME . "\n";;
     }
-    if($stash =~/^(optimize|B::|type|float|int)/) {
+    if($stash =~/^(optimize|B::|type|float|int|^O$)/) {
 #	print "Don't optimize ourself\n";
 	return;
     }
@@ -36,27 +36,15 @@ use optimizer "extend-c" => sub {
     };
     if($@) {
 	$@ =~s/\n//;
-#	print "$@ in " . $state->file . ":" . $state->line . "\n";;
+	print "$@ in " . $state->file . ":" . $state->line . "\n";;
 	return;
     }
 
-    if($op->name eq 'const' &&
-       $op->sv->sv eq 'attributes') {
-#	print $op->name . "-" . $op->seq . "\n";
-#	my $oop = $op->next;
-#	while(1) {
-#	    print "$oop - " . $oop->name;
-#	    if($oop->can('sv') && $oop->sv) {
-#		print " - " . $oop->sv->sv;
-#	    }
-#	    print "\n";
-#	    last if(ref($oop->next) eq 'B::NULL');
-#	    $oop = $oop->next;
-#	}
-##	print $op->next->next->next->next->name ."\n";
-    }
+
+
 
     if($op->name eq 'const' &&
+       ref($op->sv) eq 'B::PV' && 
        $op->sv->sv eq 'attributes' && 
        $op->can('next') &&
        $op->next->can('next') &&

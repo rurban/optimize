@@ -1,5 +1,10 @@
 Revision history for Perl extension optimize
 
+0.03 Sun Aug 11 23:45:10 CEST 2002
+    - Fixed bug when a constant was a AV in which we would get bizare
+      copy of Array
+
+
 0.02 Fri Jun 28 00:22:01 CEST 2002
     - Added register() and unregister() functions to 
       allow third party modules to hook into

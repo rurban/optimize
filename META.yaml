@@ -10,4 +10,4 @@ requires:
   Hook::Scope: 0.02
   optimizer: 0.02
   perl: 5.8
-version: 0.02
+version: 0.03
