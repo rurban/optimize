@@ -1,0 +1,13 @@
+--- #YAML:1.0
+conflicts: {}
+distribution_type: module
+dynamic_config: 1
+license: unknown
+name: optimize
+recommends: {}
+requires:
+  B::Generate: 1.03
+  Hook::Scope: 0.02
+  optimizer: 0.02
+  perl: 5.8
+version: 0.01
