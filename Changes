@@ -1,0 +1,6 @@
+Revision history for Perl extension optimize
+
+0.02 Fri Jun 28 00:22:01 CEST 2002
+    - Added register() and unregister() functions to 
+      allow third party modules to hook into
+      optimize

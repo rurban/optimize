@@ -8,13 +8,14 @@ use B::Utils qw(walkallops_simple);
 use B qw(OPf_KIDS OPf_MOD OPf_PARENS OPf_WANT_SCALAR OPf_STACKED);
 use Attribute::Handlers;
 use Hook::Scope qw(POST);
-our $VERSION = 0.01;
+our $VERSION = 0.02;
 
 our %pads;
 our $state;
 our $old_op;
 our %loaded;
 our $stash;
+our %register;
 use optimizer "extend-c" => sub { 
     my $op = shift;
     POST { $old_op = $op };
@@ -23,7 +24,7 @@ use optimizer "extend-c" => sub {
 	$stash = $state->stash->NAME;
 #	print $state->file . ":" . $state->line . "-" . $state->stash->NAME . "\n";;
     }
-    if($stash =~/^(optimize|B::)/) {
+    if($stash =~/^(optimize|B::|type|float|int)/) {
 #	print "Don't optimize ourself\n";
 	return;
     }
@@ -96,121 +97,30 @@ use optimizer "extend-c" => sub {
 	$_->check($op);
 #	print "Called $_\n";
     }
-
-
-    if($op->name eq 'sassign') {
-	my $dst = $state->next->next;
-	my $src = $state->next;
-	if($dst->name eq 'padsv' && $dst->next->name eq 'sassign') {
-	    my $cv = $op->find_cv();
-	    if(exists($pads{$cv->ROOT->seq}) && 
-	       exists($pads{$cv->ROOT->seq}->[$dst->targ]) &&
-	       $pads{$cv->ROOT->seq}->[$dst->targ]->[1]->{tied}
-	       ) {
-#		print "sassign tied optimization possible\n";
-
-
-#		return;
-		my $n = $op->next;
-#		$op->next(0);
-		$op->first(0);
-		$op->null();
-#		$op->dump();
-
-		my $pushmark = B::OP->new("pushmark",2);
-		$state->next($pushmark);
-		$pushmark->next($dst);
-		$pushmark->seq(optimizer::op_seqmax_inc());
-		my $tied = B::UNOP->new('tied',38,$dst);
-		$tied->seq(optimizer::op_seqmax_inc());
-		$pushmark->sibling($tied);
-#		$dst->flags(50);
-		$dst->next($tied);
-		$tied->next($src);
-		$tied->sibling($src);
-#		$src->flags(34);
-		
-		my $method_named = B::SVOP->new('method_named',0,"STORE");
-		$method_named->seq(optimizer::op_seqmax_inc());
-		$src->next($method_named);
-		$src->sibling($method_named);
-
-
-		my $entersub = B::UNOP->new('entersub',69,0);
-		$entersub->seq(optimizer::op_seqmax_inc());
-		$method_named->next($entersub);
-		$entersub->next($n);		
-		$entersub->first($pushmark);
-		$state->sibling($entersub);
-
-		if($n->flags & OPf_KIDS) {
-		    my $no_sibling = 1;
-		    for (my $kid = $n->first; $$kid; $kid = $kid->sibling) {
-			if($kid->seq == $entersub->seq) {
-			    $no_sibling = 0;
-			    last;
-			}
-		    }
-		    if($no_sibling) {
-			$entersub->sibling($n);
-		    }
-		} else {
-		    $entersub->sibling($n);
-		}
-#		print $tied->next->name . "\n";
-#		print $src->next->name . "\n";
-#		print $dst->next->name . "\n";
-
+    if(exists($register{$stash})) {
+	for my $callback (values %{$register{$stash}}) {
+	    if($callback) {
+		$callback->($op);
 	    }
-	}
-    } elsif($op->name eq 'padsv' && !($op->flags & OPf_MOD)) {
-	my $cv = $op->find_cv();
-	if(exists($pads{$cv->ROOT->seq}) && 
-	   exists($pads{$cv->ROOT->seq}->[$op->targ]) &&
-	   $pads{$cv->ROOT->seq}->[$op->targ]->[1]->{tied}
-	   ) {
-#	    print $old_op->seq . " - " . $state->seq . "\n";
-#	    $old_op->dump();
-#	    $op->dump();
-	    my $sibling = $op->sibling();
-
-	    my $pushmark = B::OP->new("pushmark",2);
-	    my $n = $op->next();
-            $old_op->next($pushmark);
-	    $pushmark->seq(optimizer::op_seqmax_inc());
-	    $pushmark->next($op);
-	    $op->sibling(0);
-	    my $tied = B::UNOP->new('tied',38,$op);
-	    $pushmark->sibling($tied);
-	    $op->next($tied);
-	    my $method_named = B::SVOP->new('method_named',OPf_WANT_SCALAR,"FETCH");
-	    $tied->sibling($method_named);
-#	    $tied->seq(optimizer::op_seqmax_inc());
-	    $tied->next($method_named);
-	    my $entersub = B::UNOP->new('entersub',OPf_WANT_SCALAR| OPf_PARENS | OPf_STACKED,0);
-#	    $method_named->seq(optimizer::op_seqmax_inc());
-	    $method_named->next($entersub);
-	    $entersub->first($pushmark);
-#	    $entersub->seq(optimizer::op_seqmax_inc());
-	    $entersub->next($n);
-	    $entersub->sibling($sibling);
-	    $n->next->first($entersub);
-#	    $old_op->sibling($entersub);
 	}
     }
 
 };
 
+sub register {
+    my $class = shift;
+    my $callback = shift;
+    my $package = shift;
+    my ($name) = (caller)[0];
+    $register{$package}->{$name} = $callback;
+}
 
-
-#CHECK {
-#    push @B::Utils::bad_stashes, "optimize",'Attribute::Handlers','B::Generate','attributes','lib','constant','UNIVERSAL';
-#    walkallops_simple(\&callback);
-#}
-
-#my %pads;
-#my $state;
-
+sub unregister {
+    my $class = shift;
+    my $package = shift;
+    my ($name) = (caller)[0];
+    $register{$package}->{$name} = 0;
+}
 
 sub UNIVERSAL::optimize : ATTR {
     
@@ -227,6 +137,14 @@ optimize - Pragma for hinting optimizations on variables
     $int = 1.5;
     $int += 1;
     if($int == 2) { print "$int is integerized" }
+
+    #Following will call this callback with the op
+    #as the argument if you are in the specified package
+    #see types.pm how it is used from import and unimport
+    optimize->register(\&callback, $package);
+
+    #and reverse it
+    optimize->unregister($package);
 
 =head1 DESCRIPTION
 

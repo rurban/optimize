@@ -11,7 +11,7 @@ my $build = Module::Build->new
      requires => 
      { 
 	 Hook::Scope => '0.02',
-	 'B::Generate' => '1.03',
+	 'B::Generate' => '1.05',
 	 'optimizer'   => '0.02',
 	 'perl' => '5.8',
      }
