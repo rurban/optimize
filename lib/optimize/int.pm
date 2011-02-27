@@ -23,7 +23,7 @@ sub check {
     if(exists($int{$op->name})) {
 	my $cv = $op->find_cv();
 	if(exists($optimize::pads{$cv->ROOT->seq}) &&
-	   $optimize::pads{$cv->ROOT->seq}->[$op->targ]->[1]->{int}) {	    
+	   $optimize::pads{$cv->ROOT->seq}->[$op->targ]->[1]->{int}) {
 	    $mutate++;
 	} elsif($op->can('first') && $op->first->name eq 'padsv' &&
 		exists($optimize::pads{$cv->ROOT->seq}) &&

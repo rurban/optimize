@@ -13,7 +13,7 @@ my $build = Module::Build->new
 	 Hook::Scope => '0.02',
 	 'B::Generate' => '1.05',
 	 'optimizer'   => '0.02',
-	 'perl' => '5.8',
+	 'perl' => '5.008',
      }
      );
 $build->create_build_script();

@@ -1,6 +1,10 @@
 Revision history for Perl extension optimize
 
-0.03 Sun Aug 11 23:45:10 CEST 2002
+0.03_01 2011-02-19 rurban
+    - enabled register/unregister
+    - stablized 11-integer left shift test
+
+0.03 Sun Aug 11 23:45:10 CEST 2002 abergman
     - Fixed bug when a constant was a AV in which we would get bizare
       copy of Array
 

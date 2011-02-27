@@ -1,7 +1,5 @@
 #!./perl
 
-
-
 use Test::More tests => 11;
 use Config;
 use optimize;
@@ -28,13 +26,13 @@ $z = $x / $y;
 is($z, 0, "modulo");
 
 is($x, 4.5, "scalar still floating point");
- 
+
 isnt(sqrt($x), 2, "functions still floating point");
- 
+
 isnt($x ** .5, 2, "power still floating point");
 
 is(++$x, 5.5, "++ still floating point");
- 
+
 SKIP: {
     my $ivsize = $Config{ivsize};
     skip "ivsize == $ivsize", 2 unless $ivsize == 4 || $ivsize == 8;
@@ -44,7 +42,8 @@ SKIP: {
 	is($z + 1, -2147483648, "left shift");
     } elsif ($ivsize == 8) {
 	$z = 2**63 - 1;
-	is($z + 1, -9223372036854775808, "left shift");
+        my $i = $z + 1;
+	ok("$i" =~ /-922337203685477580[6-9]$/, "left shift");
     }
 }
 $z = 0;
