@@ -7,7 +7,7 @@ use B::Utils qw(walkallops_simple);
 use B qw(OPf_KIDS OPf_MOD OPf_PARENS OPf_WANT_SCALAR OPf_STACKED);
 use Attribute::Handlers;
 use Hook::Scope qw(POST);
-our $VERSION = "0.03_01";
+our $VERSION = "0.03_02";
 
 our %pads;
 our $state;

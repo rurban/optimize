@@ -7,7 +7,11 @@ WriteMakefile
    'PREREQ_PM'	=>
    {
     'DynaLoader'  => 0,
-    'B::Generate' => '1.34'
+    'Attribute::Handlers' => 0,
+    'B::Generate' => '1.34',
+    'B::Utils'    => 0,
+    'Hook::Scope' => '0.02',
+    'optimizer'   => '0.02',
    },
    AUTHOR        => 'Arthur Bergman',
    ($ExtUtils::MakeMaker::VERSION gt '6.46' ?
