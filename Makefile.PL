@@ -10,10 +10,10 @@ WriteMakefile
     'Attribute::Handlers' => 0,
     'B::Generate' => '1.34',
     'B::Utils'    => 0,
-    'Hook::Scope' => '0.02',
-    'optimizer'   => '0.02',
+    'B::Hooks::EndOfScope' => '0.09',
+    'optimizer'   => '0.06',
    },
-   AUTHOR        => 'Arthur Bergman',
+   AUTHOR        => 'Artur Bergman',
    ($ExtUtils::MakeMaker::VERSION gt '6.46' ?
     ('META_MERGE'  =>
      {

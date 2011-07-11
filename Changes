@@ -1,5 +1,8 @@
 Revision history for Perl extension optimize
 
+0.03_02 2011-07-xx rurban
+    - replace failing Hook::Scope::POST with B::Hooks::EndOfScope::on_scope_end
+
 0.03_02 2011-03-01 rurban
     - added missing requirements
 

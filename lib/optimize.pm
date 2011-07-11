@@ -6,8 +6,9 @@ use B::Generate;
 use B::Utils qw(walkallops_simple);
 use B qw(OPf_KIDS OPf_MOD OPf_PARENS OPf_WANT_SCALAR OPf_STACKED);
 use Attribute::Handlers;
-use Hook::Scope qw(POST);
-our $VERSION = "0.03_02";
+use B::Hooks::EndOfScope;
+
+our $VERSION = "0.03_03";
 
 our %pads;
 our $state;
@@ -18,14 +19,13 @@ our %register;
 
 use optimizer "extend-c" => sub {
     my $op = shift;
-    POST(sub{$old_op = $op;()});
+    on_scope_end {$old_op = $op;()};
     return unless $op;
-    if($op->name eq 'nextstate') {
+    if ($op->name eq 'nextstate') {
 	$state = $op;
 	$stash = $state->stash->NAME;
         # print $state->file . ":" . $state->line . "-" . $state->stash->NAME . "\n";
-
-        if($stash =~/^(optimize|B::|types$|float$|double$|int$|number$|^O$)/) {
+        if ($stash =~/^(optimize|B::|types$|float$|double$|int$|number$|^O$)/) {
             #	print "Don't optimize ourself\n";
             return;
         }
@@ -36,12 +36,12 @@ use optimizer "extend-c" => sub {
     eval {
 	$cv = $op->find_cv;
     };
-    if($@) {
+    if ($@) {
 	$@ =~s/\n//;
 	print "$@ in " . $state->file . ":" . $state->line . "\n";;
 	return;
     }
-    if($op->name eq 'const' &&
+    if ($op->name eq 'const' &&
        ref($op->sv) eq 'B::PV' && 
        $op->sv->sv eq 'attributes' &&
        $op->can('next') &&
@@ -60,15 +60,15 @@ use optimizer "extend-c" => sub {
 	
 	my $attribute = $op->next->next->next->next->next->sv->sv;
 	
-	if($attribute =~/^optimize\(\s*(.*)\s*\)/) {
+	if ($attribute =~/^optimize\(\s*(.*)\s*\)/) {
             # print "$attribute\n";
 	    my @attributes = split /\s*,\s*/, $1;
             # print "GOT " . join("-", @attributes) . "\n";
 
-	    if($op->next->next->name eq 'padsv') {
+	    if ($op->next->next->name eq 'padsv') {
 		my $sv = (($cv->PADLIST->ARRAY)[0]->ARRAY)[$op->next->next->targ];
 		my $ref = $pads{$cv->ROOT->seq}->[$op->next->next->targ] = [$sv->sv(),{}];
-		for(@attributes) {
+		for (@attributes) {
 		    $ref->[1]{$_}++;
 		    unless($loaded{$_}) {
 			require "optimize/$_.pm";			
@@ -85,9 +85,9 @@ use optimizer "extend-c" => sub {
         # print "Called $_\n";
     }
     # calling types
-    if(exists($register{$stash})) {
+    if (exists($register{$stash})) {
 	for my $callback (values %{$register{$stash}}) {
-	    if($callback) {
+	    if ($callback) {
 		$callback->($op);
 	    }
 	}
@@ -127,7 +127,7 @@ optimize - Pragma for hinting optimizations on variables
     my $int : optimize(int);
     $int = 1.5;
     $int += 1;
-    if($int == 2) { print "$int is integerized" }
+    if ($int == 2) { print "$int is integerized" }
 
     #Following will call this callback with the op
     #as the argument if you are in the specified package
