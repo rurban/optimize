@@ -10,6 +10,7 @@ use B::Hooks::EndOfScope;
 
 our $VERSION = "0.03_03";
 
+our $DEBUG = 0;
 our %pads;
 our $state;
 our $old_op;
@@ -17,6 +18,7 @@ our %loaded;
 our $stash = '';
 our %register;
 
+sub dbgprint { print @_ if $DEBUG; }
 use optimizer "extend-c" => sub {
     my $op = shift;
     on_scope_end {$old_op = $op;()};
@@ -24,14 +26,15 @@ use optimizer "extend-c" => sub {
     if ($op->name eq 'nextstate') {
 	$state = $op;
 	$stash = $state->stash->NAME;
-        # print $state->file . ":" . $state->line . "-" . $state->stash->NAME . "\n";
+        dbgprint $state->file . ":" . $state->line . "-" . $state->stash->NAME . "\n";
         if ($stash =~/^(optimize|B::|types$|float$|double$|int$|number$|^O$)/) {
-            #	print "Don't optimize ourself\n";
+            dbgprint "Don't optimize ourself\n";
             return;
         }
     }
 
-    # print "$op - " . $op->name . " - " . $op->next . " - " . ($op->next->can('name') ? $op->next->name : "") . "\n";
+    dbgprint ref($op)." - " . $op->name . " - " . ref($op->next) . " - " . 
+             ($op->next->can('name') ? $op->next->name : "null") . "\n";
     my $cv;
     eval {
 	$cv = $op->find_cv;
@@ -61,13 +64,13 @@ use optimizer "extend-c" => sub {
 	my $attribute = $op->next->next->next->next->next->sv->sv;
 	
 	if ($attribute =~/^optimize\(\s*(.*)\s*\)/) {
-            # print "$attribute\n";
+            #dbgprint "attr: $attribute\n";
 	    my @attributes = split /\s*,\s*/, $1;
-            # print "GOT " . join("-", @attributes) . "\n";
-
-	    if ($op->next->next->name eq 'padsv') {
-		my $sv = (($cv->PADLIST->ARRAY)[0]->ARRAY)[$op->next->next->targ];
-		my $ref = $pads{$cv->ROOT->seq}->[$op->next->next->targ] = [$sv->sv(),{}];
+            dbgprint "GOT " . join("-", @attributes) . "\n";
+	    my $opnn = $op->next->next;
+	    if ($opnn->name eq 'padsv') {
+		my $sv = (($cv->PADLIST->ARRAY)[0]->ARRAY)[$opnn->targ];
+		my $ref = $pads{$cv->ROOT->seq}->[$opnn->targ] = [$sv->sv(),{}];
 		for (@attributes) {
 		    $ref->[1]{$_}++;
 		    unless($loaded{$_}) {
@@ -80,9 +83,9 @@ use optimizer "extend-c" => sub {
     }
 
     for (values %loaded) {	
-        # print "Calling $_\n";
+        dbgprint "Calling $_\n";
 	$_->check($op);
-        # print "Called $_\n";
+        dbgprint "Called $_\n";
     }
     # calling types
     if (exists($register{$stash})) {
@@ -129,17 +132,17 @@ optimize - Pragma for hinting optimizations on variables
     $int += 1;
     if ($int == 2) { print "$int is integerized" }
 
-    #Following will call this callback with the op
-    #as the argument if you are in the specified package
-    #see types.pm how it is used from import and unimport
+    # Following will call this callback with the op
+    # as the argument if you are in the specified package.
+    # See L<types> how it is used from import and unimport.
     optimize->register(\&callback, $package);
 
-    #and reverse it
+    # and reverse it
     optimize->unregister($package);
 
 =head1 DESCRIPTION
 
-optimize allows you to use attributes to turn on optimizations.
+B<optimize> allows you to use attributes to turn on optimizations.
 It works as a framework for different optimizations.
 
 =head1 BUGS
