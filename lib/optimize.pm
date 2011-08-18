@@ -152,7 +152,7 @@ different optimizations will be in a different state of readyness
 
 =head1 AUTHOR
 
-Arthur Bergman E<lt>abergman at cpan.orgE<gt>
+Artur Bergman E<lt>abergman at cpan.orgE<gt>
 
 =head1 SEE ALSO
 

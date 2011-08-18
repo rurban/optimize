@@ -70,7 +70,7 @@ C<my $int : optimize(int);>.
 
 =head1 AUTHOR
 
-Arthur Bergman E<lt>abergman@cpan.orgE<gt>
+Artur Bergman E<lt>abergman@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
