@@ -1,5 +1,5 @@
-
-use Test::More tests=>9;
+# -*-perl -*-
+use Test::More tests => $INC{"Devel/Cover.pm"} ? 9 : 7;
 use optimize;
 
 package foo;

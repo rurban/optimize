@@ -1,6 +1,9 @@
 Revision history for Perl extension optimize
 
-0.03_03 2011-07-18 rurban
+0.03_04 2011-08-19 rurban
+    - remove B::Hooks::EndOfScope::on_scope_end dependency, not needed
+
+0.03_03 2011-08-18 rurban
     - replace failing Hook::Scope::POST with 
       B::Hooks::EndOfScope::on_scope_end
     - fix Artur's name

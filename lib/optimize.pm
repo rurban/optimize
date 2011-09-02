@@ -6,14 +6,12 @@ use B::Generate;
 use B::Utils qw(walkallops_simple);
 use B qw(OPf_KIDS OPf_MOD OPf_PARENS OPf_WANT_SCALAR OPf_STACKED);
 use Attribute::Handlers;
-use B::Hooks::EndOfScope;
 
-our $VERSION = "0.03_03";
+our $VERSION = "0.03_04";
 
 our $DEBUG = 0;
 our %pads;
 our $state;
-our $old_op;
 our %loaded;
 our $stash = '';
 our %register;
@@ -21,14 +19,14 @@ our %register;
 sub dbgprint { print @_ if $DEBUG; }
 use optimizer "extend-c" => sub {
     my $op = shift;
-    on_scope_end {$old_op = $op;()};
     return unless $op;
+
     if ($op->name eq 'nextstate') {
 	$state = $op;
 	$stash = $state->stash->NAME;
         dbgprint $state->file . ":" . $state->line . "-" . $state->stash->NAME . "\n";
-        if ($stash =~/^(optimize|B::|types$|float$|double$|int$|number$|^O$)/) {
-            dbgprint "Don't optimize ourself\n";
+        if ($stash =~ /^(optimize|B::|types$|float$|double$|int$|number$|^O$|^DB$)/) {
+            dbgprint "Don't optimize ourself $stash\n";
             return;
         }
     }
@@ -40,7 +38,7 @@ use optimizer "extend-c" => sub {
 	$cv = $op->find_cv;
     };
     if ($@) {
-	$@ =~s/\n//;
+	$@ =~ s/\n//;
 	print "$@ in " . $state->file . ":" . $state->line . "\n";;
 	return;
     }
@@ -60,7 +58,6 @@ use optimizer "extend-c" => sub {
 
         # Here we establish that this is an use of attributes on lexicals
         # however we want to establish what attribute it is
-	
 	my $attribute = $op->next->next->next->next->next->sv->sv;
 	
 	if ($attribute =~/^optimize\(\s*(.*)\s*\)/) {
@@ -83,9 +80,9 @@ use optimizer "extend-c" => sub {
     }
 
     for (values %loaded) {	
-        dbgprint "Calling $_\n";
+        dbgprint "$_->check ",$op->name,"\n";
 	$_->check($op);
-        dbgprint "Called $_\n";
+        #dbgprint "Called $_\n";
     }
     # calling types
     if (exists($register{$stash})) {
@@ -103,6 +100,7 @@ sub register {
     my $callback = shift;
     my $package = shift;
     my ($name) = (caller)[0];
+    $DB::single = 1 if defined &DB::DB; # magic to allow debugging into CHECK blocks
     $register{$package}->{$name} = $callback;
 }
 
