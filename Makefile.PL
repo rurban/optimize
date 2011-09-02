@@ -10,10 +10,10 @@ WriteMakefile
     'Attribute::Handlers' => 0,
     'B::Generate' => '1.34',
     'B::Utils'    => 0,
-    'B::Hooks::EndOfScope' => '0.09',
+    #'B::Hooks::EndOfScope' => '0.09',
     'optimizer'   => '0.06',
    },
-   AUTHOR        => 'Artur Bergman',
+   AUTHOR        => 'Artur Bergman, Reini Urban',
    ($ExtUtils::MakeMaker::VERSION gt '6.46' ?
     ('META_MERGE'  =>
      {
@@ -26,5 +26,14 @@ WriteMakefile
     ) : ()),
   );
 
-sub MY::depend { "README : lib/optimize.pm\n\tpod2text lib/optimize.pm > README\n"; }
+sub MY::depend { "
+README : lib/optimize.pm 
+	pod2text lib/optimize.pm > README
+
+cover : cover_db/coverage.html
+
+cover_db/coverage.html :
+	PERL5OPT=-MDevel::Cover make test
+	\$(PERL) -S cover
+"; }
 
