@@ -1,9 +1,8 @@
-
-
-use Test::More tests=> 10;
-use lib '.';
-use lib './lib/';
-use strict;
+# -*- perl -*-
+use Test::More tests => 10;
+#use lib '.';
+#use lib './lib/';
+#use strict;
 
 use optimize;
 my $foo : optimize(int) = 1.5;
