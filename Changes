@@ -1,7 +1,11 @@
 Revision history for Perl extension optimize
 
-0.03_04 2011-08-19 rurban
+0.04 2011-09-07 rurban
     - remove B::Hooks::EndOfScope::on_scope_end dependency, not needed
+    - fix threaded (const PV->GV): tests pass now, only some older perls fail.
+    - remove unneeded Build.PL and META.yml
+    - dbgprint rewordings, 
+    - adjust t/02-register.t for testcover
 
 0.03_03 2011-08-18 rurban
     - replace failing Hook::Scope::POST with 

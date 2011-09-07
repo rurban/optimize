@@ -7,7 +7,7 @@ use B::Utils qw(walkallops_simple);
 use B qw(OPf_KIDS OPf_MOD OPf_PARENS OPf_WANT_SCALAR OPf_STACKED);
 use Attribute::Handlers;
 
-our $VERSION = "0.03_04";
+our $VERSION = "0.04";
 
 our $DEBUG = 0;
 our %pads;
@@ -67,8 +67,7 @@ use optimizer "extend-c" => sub {
 			#dbgprint "method: ", $op->next->next->next->next->next->next->name,":", 
 			#  $op->next->next->next->next->next->next->sv->sv, "\n";
 			if ($op->next->next->next->next->next->next->sv->sv eq 'import') {
-			    my $attribute = $op->next->next->next->next->next->sv->sv;
-			    dbgprint "my const $attribute\n"; # fails threaded
+
         # Here we establish that this is an use of attributes on lexicals
         # however we want to establish what attribute it is
 	my $attribute = $op->next->next->next->next->next->sv->sv;
