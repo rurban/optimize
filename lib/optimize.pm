@@ -7,7 +7,7 @@ use B::Utils qw(walkallops_simple);
 use B qw(OPf_KIDS OPf_MOD OPf_PARENS OPf_WANT_SCALAR OPf_STACKED);
 use Attribute::Handlers;
 
-our $VERSION = "0.04";
+our $VERSION = "0.05";
 
 our $DEBUG = 0;
 our %pads;
@@ -17,7 +17,6 @@ our $stash = '';
 our %register;
 
 sub dbgprint { print @_ if $DEBUG; }
-sub B::OP::safenext { $_[0]->can('next') ? $_[0]->next : bless { next => 0 }, "B::OP" }
 
 use optimizer "extend-c" => sub {
     my $op = shift;
